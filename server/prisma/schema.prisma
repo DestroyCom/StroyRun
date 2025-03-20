@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  username       String   @id
+  wins           Int
+  matchesPlayed  Int
+  winRate        Float
+  ipAdress       String
+  port           Int
+  
+  lobbies        Lobby[] @relation("LobbyPlayers")
+  wonLobbies     Lobby[] @relation("LobbyWinner")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  Lobby Lobby[]
+}
+
+model Lobby {
+  id        String   @id @default(cuid())
+  players   Player[] @relation("LobbyPlayers")
+//doesUsersReady Boolean
+  readyUsers Player[]
+  winnerId  String?  
+  winner    Player?  @relation("LobbyWinner", fields: [winnerId], references: [username])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

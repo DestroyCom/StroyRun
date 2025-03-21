@@ -34,9 +34,9 @@ export const Lobby = () => {
       try {
         lobbyJoinListener = await listen<string>("udp-message", (event) => {
           const packet = event.payload;
-          console.log("UDP message reçu brut:", packet);
+          // console.log("UDP message reçu brut:", packet);
           const decodedPacket = decodePacket(packet, "", 0);
-          console.log("UDP message reçu decoded:", decodedPacket);
+          // console.log("UDP message reçu decoded:", decodedPacket);
 
           if (
             decodedPacket.ID === "StroyRun" &&
@@ -50,7 +50,7 @@ export const Lobby = () => {
               return;
             }
 
-            console.log("players", data);
+            // console.log("players", data);
 
             if (data) {
               const loggedPlayer = data.find(
@@ -75,18 +75,18 @@ export const Lobby = () => {
                 },
               });
 
-              console.log("prebuilduserstauts", {
-                player1: {
-                  status: loggedPlayer.isReady ? "Ready" : "Waiting",
-                  username: loggedUsername,
-                },
-                player2: {
-                  status: otherPlayer.isReady ? "Ready" : "Waiting",
-                  username: otherPlayer.username,
-                },
-              });
+              // console.log("prebuilduserstauts", {
+              //   player1: {
+              //     status: loggedPlayer.isReady ? "Ready" : "Waiting",
+              //     username: loggedUsername,
+              //   },
+              //   player2: {
+              //     status: otherPlayer.isReady ? "Ready" : "Waiting",
+              //     username: otherPlayer.username,
+              //   },
+              // });
 
-              console.log("playerStatus", playerStatus);
+              // console.log("playerStatus", playerStatus);
             }
           } else if (
             decodedPacket.ID === "StroyRun" &&

@@ -16,16 +16,16 @@ export const Login = () => {
       try {
         lobbyJoinListener = await listen<string>("udp-message", (event) => {
           const packet = event.payload;
-          console.log("UDP message reçu brut:", packet);
+          // console.log("UDP message reçu brut:", packet);
           const decodedPacket = decodePacket(packet, "", 0);
-          console.log("UDP message reçu decoded:", decodedPacket);
+          // console.log("UDP message reçu decoded:", decodedPacket);
 
           if (
             decodedPacket.ID === "StroyRun" &&
             (decodedPacket.action === "WaitingInLobby" ||
               decodedPacket.action === "JoinLobby")
           ) {
-            console.log("decodedPacket", decodedPacket);
+            // console.log("decodedPacket", decodedPacket);
             navigate({
               to: "/lobby",
               search: {
@@ -131,7 +131,7 @@ export const Login = () => {
             },
           });
 
-          console.log(packet);
+          // console.log(packet);
 
           invoke<string>("send_udp_message", {
             message: packet,

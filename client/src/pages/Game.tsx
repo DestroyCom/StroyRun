@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import { createPacket, decodePacket } from "../utils/packets";
-import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/core";
 import { useSearch } from "@tanstack/react-router";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import clsx from "clsx";
+import { useEffect, useRef, useState } from "react";
+import { createPacket, decodePacket } from "../utils/packets";
 
 export const Game = () => {
   const { LobbyID, loggedUsername } = useSearch({
@@ -95,7 +95,7 @@ export const Game = () => {
         lobbyJoinListener = await listen<string>("udp-message", (event) => {
           const packet = event.payload;
           const decodedPacket = decodePacket(packet, "", 0);
-          console.log("UDP message reçu decoded:", decodedPacket);
+          // console.log("UDP message reçu decoded:", decodedPacket);
 
           //Do nothing if not our packet
           if (decodedPacket.ID !== "StroyRun") return;
@@ -136,7 +136,7 @@ export const Game = () => {
               return;
             }
 
-            console.log("GameState data:", data);
+            // console.log("GameState data:", data);
 
             const playerOneProgress = data.players[loggedUsername].percentage;
             const otherPlayerId = Object.keys(data.players).find(
@@ -183,7 +183,7 @@ export const Game = () => {
   }, []);
 
   useEffect(() => {
-    console.log("loggeUsername", loggedUsername);
+    // console.log("loggeUsername", loggedUsername);
     if (!loggedUsername) return;
 
     console.log("Envoi du message pour démarrer la game");
@@ -202,6 +202,24 @@ export const Game = () => {
         },
       }),
     });
+  }, []);
+
+  useEffect(() => {
+    const preventDefaultForEnter = (e: KeyboardEvent) => {
+      console.log("Prevent default for enter", e.key);
+      // Empêcher le comportement par défaut de la touche Enter/Return
+      if (e.key === "Enter" || e.key === "Backspace") {
+        e.preventDefault();
+      }
+    };
+
+    // Ajouter l'é  couteur d'événements
+    window.addEventListener("keydown", preventDefaultForEnter);
+
+    // Nettoyer l'écouteur d'événements lors du démontage du composant
+    return () => {
+      window.removeEventListener("keydown", preventDefaultForEnter);
+    };
   }, []);
 
   return (

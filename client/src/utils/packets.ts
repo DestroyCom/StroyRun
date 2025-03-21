@@ -56,7 +56,7 @@ export function decodePacket(
     }
   }
 
-  console.log("parts4", parts[4]);
+  // console.log("parts4", parts[4]);
 
   return payload;
 }

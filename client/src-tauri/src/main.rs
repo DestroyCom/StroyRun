@@ -6,6 +6,8 @@
 use std::{net::UdpSocket, thread, time::Duration};
 use tauri::{AppHandle, Manager, Emitter};
 
+const DELAY: u64 = 50;
+
 #[tauri::command]
 fn send_udp_message(message: String) -> Result<String, String> {
     let game_server_addr = "192.168.34.114";
@@ -16,7 +18,7 @@ fn send_udp_message(message: String) -> Result<String, String> {
     let server_addr = format!("{}:{}", game_server_addr, game_server_port);
     
      socket
-        .set_read_timeout(Some(Duration::from_millis(200)))
+        .set_read_timeout(Some(Duration::from_millis(DELAY)))
         .map_err(|e| format!("Impossible de configurer le timeout: {}", e))?;
     
     socket
@@ -39,7 +41,7 @@ fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
             .expect("Impossible de binder le socket d'écoute sur le port 9999");
         
          listener_socket
-             .set_read_timeout(Some(Duration::from_millis(200)))
+             .set_read_timeout(Some(Duration::from_millis(DELAY)))
              .ok();
 
         let mut buf = [0u8; 1024];
@@ -62,7 +64,7 @@ fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
                 Err(e) => eprintln!("Erreur de réception UDP: {}", e),
             }
             // Petite pause pour éviter un spin loop à 200% CPU
-            thread::sleep(Duration::from_millis(200));
+            thread::sleep(Duration::from_millis(DELAY));
         }
     })
 }

@@ -272,7 +272,7 @@ export async function interpretAction(payload: PacketPayload) {
           }
 
           //Timeout
-          await new Promise((resolve) => setTimeout(resolve, 250));
+          await new Promise((resolve) => setTimeout(resolve, 150));
         } while (continueWhile);
       } else {
         await prisma.lobby.update({

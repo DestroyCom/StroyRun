@@ -3,11 +3,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 import { createPacket, decodePacket } from "../utils/packets";
-import { PacketPayload } from "src/types";
 
 export const Lobby = () => {
   const navigate = useNavigate();
-  const { LobbyID } = useSearch({
+  const { LobbyID, playerData } = useSearch({
     from: "/lobby",
   });
 
@@ -22,7 +21,9 @@ export const Lobby = () => {
     },
     player2: {
       status: "Waiting",
-      username: "",
+      username:
+        playerData?.find((player: any) => player.username !== loggedUsername)
+          ?.username || "En attente de l'autre joueur",
     },
   });
 
@@ -39,36 +40,53 @@ export const Lobby = () => {
 
           if (
             decodedPacket.ID === "StroyRun" &&
-            decodedPacket.action === "Ready"
+            (decodedPacket.action === "Ready" ||
+              decodedPacket.action === "JoinLobby" ||
+              decodedPacket.action === "WaitingInLobby")
           ) {
-            console.log("decodedPacket", decodedPacket);
+            const data = decodedPacket.data?.players;
 
-            // @ts-ignore
-            const data: PacketPayload["data"]["isReady"] =
-              decodedPacket.data?.isReady;
+            if (!data) {
+              return;
+            }
+
+            console.log("players", data);
 
             if (data) {
               const loggedPlayer = data.find(
                 (player: any) => player.username === loggedUsername
               );
+              const otherPlayer = data.find(
+                (player: any) => player.username !== loggedUsername
+              );
 
-              if (loggedPlayer) {
-                setPlayerStatus((prev) => ({
-                  ...prev,
-                  player1: {
-                    ...prev.player1,
-                    status: "Ready",
-                  },
-                }));
-              } else {
-                setPlayerStatus((prev) => ({
-                  ...prev,
-                  player2: {
-                    ...prev.player2,
-                    status: "Ready",
-                  },
-                }));
+              if (!loggedPlayer || !otherPlayer) {
+                return;
               }
+
+              setPlayerStatus({
+                player1: {
+                  status: loggedPlayer.isReady ? "Ready" : "Waiting",
+                  username: loggedUsername,
+                },
+                player2: {
+                  status: otherPlayer.isReady ? "Ready" : "Waiting",
+                  username: otherPlayer.username,
+                },
+              });
+
+              console.log("prebuilduserstauts", {
+                player1: {
+                  status: loggedPlayer.isReady ? "Ready" : "Waiting",
+                  username: loggedUsername,
+                },
+                player2: {
+                  status: otherPlayer.isReady ? "Ready" : "Waiting",
+                  username: otherPlayer.username,
+                },
+              });
+
+              console.log("playerStatus", playerStatus);
             }
           } else if (
             decodedPacket.ID === "StroyRun" &&

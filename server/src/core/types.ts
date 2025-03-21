@@ -19,11 +19,10 @@ export type PacketPayload = {
     winnerId?: string;
     secondsElapsed?: number;
     error?: string;
-    isReady?: [
-      {
-        username: string;
-      },
-    ];
+    players?: {
+      username: string;
+      isReady: boolean;
+    }[];
   };
   context: {
     senderIp: string;

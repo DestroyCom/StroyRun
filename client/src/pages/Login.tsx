@@ -7,6 +7,8 @@ import { createPacket, decodePacket } from "../utils/packets";
 export const Login = () => {
   const navigate = useNavigate();
 
+  const oldUsername = localStorage.getItem("stroyrun:username");
+
   useEffect(() => {
     let lobbyJoinListener: any;
     (async () => {
@@ -26,7 +28,10 @@ export const Login = () => {
             console.log("decodedPacket", decodedPacket);
             navigate({
               to: "/lobby",
-              search: { LobbyID: decodedPacket.LobbyID },
+              search: {
+                LobbyID: decodedPacket.LobbyID,
+                playerData: decodedPacket.data?.players,
+              },
             });
           }
         });
@@ -85,6 +90,7 @@ export const Login = () => {
           className="border-2 border-purple-800 rounded-lg p-2 m-2"
           title="Username"
           placeholder="Your username"
+          defaultValue={oldUsername ?? ""}
         />
         <button className="px-8 py-4 text-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
           Create Lobby
@@ -140,6 +146,7 @@ export const Login = () => {
           className="border-2 border-purple-800 rounded-lg p-2 m-2"
           title="Username"
           placeholder="Your username"
+          defaultValue={oldUsername ?? ""}
         />
         <input
           type="text"

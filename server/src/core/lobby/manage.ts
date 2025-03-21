@@ -146,6 +146,11 @@ export async function joinLobby(payload: PacketPayload) {
         },
       },
     },
+    include: {
+      players: true,
+      readyUsers: true,
+      winner: true,
+    },
   });
 
   return lobby;

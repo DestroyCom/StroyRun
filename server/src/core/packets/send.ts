@@ -12,6 +12,8 @@ export async function sendPacket(payload: PacketPayload) {
         console.error("Erreur lors de l'envoi de la réponse:", err);
       } else {
         console.log(`Réponse envoyée à ${payload.context.receiverIp}:${PORT}`);
+        console.log("Réponse:", payload);
+        console.log("----------------------------------------");
       }
     }
   );

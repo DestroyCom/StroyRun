@@ -15,7 +15,14 @@ export async function interpretAction(payload: PacketPayload) {
         action: "WaitingInLobby",
         playerID: payload.playerID,
         LobbyID: createdLobby.id,
-        data: {},
+        data: {
+          players: [
+            {
+              username: payload.playerID,
+              isReady: false,
+            },
+          ],
+        },
         context: {
           senderIp: HOST,
           senderPort: PORT,
@@ -31,19 +38,49 @@ export async function interpretAction(payload: PacketPayload) {
         return;
       }
 
-      await sendPacket({
-        ID: "StroyRun",
-        action: "WaitingInLobby",
-        playerID: payload.playerID,
-        LobbyID: joinedLobby.id,
-        data: {},
-        context: {
-          senderIp: HOST,
-          senderPort: PORT,
-          receiverIp: payload.context.senderIp,
-          receiverPort: payload.context.senderPort,
-        },
+      const players = await prisma.player.findMany({
+        where: { lobbies: { some: { id: payload.LobbyID } } },
       });
+
+      for (const player of players) {
+        const currentPlayer = players.find(
+          (player) => player.username === payload.playerID
+        );
+        const otherPlayer = players.find(
+          (player) => player.username !== payload.playerID
+        );
+        const currentPlayerIsReady = joinedLobby.readyUsers.find(
+          (user) => user.username === currentPlayer?.username
+        );
+        const otherPlayerIsReady = joinedLobby.readyUsers.find(
+          (user) => user.username === otherPlayer?.username
+        );
+
+        await sendPacket({
+          ID: "StroyRun",
+          action: "WaitingInLobby",
+          playerID: payload.playerID,
+          LobbyID: joinedLobby.id,
+          data: {
+            players: [
+              {
+                username: currentPlayer?.username ?? "",
+                isReady: currentPlayerIsReady ? true : false,
+              },
+              {
+                username: otherPlayer?.username ?? "",
+                isReady: otherPlayerIsReady ? true : false,
+              },
+            ],
+          },
+          context: {
+            senderIp: HOST,
+            senderPort: PORT,
+            receiverIp: player.ipAdress,
+            receiverPort: player.port,
+          },
+        });
+      }
 
       return;
     case "Ready":
@@ -82,7 +119,18 @@ export async function interpretAction(payload: PacketPayload) {
             action: "Start",
             playerID: player.username,
             LobbyID: payload.LobbyID,
-            data: {},
+            data: {
+              players: [
+                {
+                  username: players[0].username,
+                  isReady: true,
+                },
+                {
+                  username: players[1].username,
+                  isReady: true,
+                },
+              ],
+            },
             context: {
               senderIp: HOST,
               senderPort: PORT,
@@ -92,25 +140,40 @@ export async function interpretAction(payload: PacketPayload) {
           });
         }
       } else {
-        await sendPacket({
-          ID: "StroyRun",
-          action: "Ready",
-          playerID: payload.playerID,
-          LobbyID: payload.LobbyID,
-          data: {
-            isReady: [
-              {
-                username: payload.playerID,
-              },
-            ],
-          },
-          context: {
-            senderIp: HOST,
-            senderPort: PORT,
-            receiverIp: payload.context.senderIp,
-            receiverPort: payload.context.senderPort,
-          },
+        const players = await prisma.player.findMany({
+          where: { lobbies: { some: { id: payload.LobbyID } } },
         });
+        //Send packet to start the game to the two players
+        for (const player of players) {
+          const otherPlayer = players.find(
+            (player) => player.username !== payload.playerID
+          );
+
+          await sendPacket({
+            ID: "StroyRun",
+            action: "Ready",
+            playerID: payload.playerID,
+            LobbyID: payload.LobbyID,
+            data: {
+              players: [
+                {
+                  username: payload.playerID,
+                  isReady: true,
+                },
+                {
+                  username: otherPlayer?.username ?? "",
+                  isReady: false,
+                },
+              ],
+            },
+            context: {
+              senderIp: HOST,
+              senderPort: PORT,
+              receiverIp: player.ipAdress,
+              receiverPort: player.port,
+            },
+          });
+        }
       }
 
       return;

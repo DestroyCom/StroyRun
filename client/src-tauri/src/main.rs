@@ -8,10 +8,10 @@ use tauri::{AppHandle, Manager, Emitter};
 
 #[tauri::command]
 fn send_udp_message(message: String) -> Result<String, String> {
-    let game_server_addr = "127.0.0.1";
+    let game_server_addr = "192.168.31.62";
     let game_server_port = 12345;
 
-    let socket = UdpSocket::bind("127.0.0.1:0")
+    let socket = UdpSocket::bind("0.0.0.0:0")
         .map_err(|e| format!("Impossible de binder le socket UDP local: {}", e))?;
     let server_addr = format!("{}:{}", game_server_addr, game_server_port);
     
@@ -35,8 +35,8 @@ fn send_udp_message(message: String) -> Result<String, String> {
 
 fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
     thread::spawn(move || {
-        let listener_socket = UdpSocket::bind("127.0.0.1:9999")
-            .expect("Impossible de binder le socket d'écoute sur 127.0.0.1:9999");
+        let listener_socket = UdpSocket::bind("0.0.0.0:9999")
+            .expect("Impossible de binder le socket d'écoute sur le port 9999");
         
         listener_socket
             .set_read_timeout(Some(Duration::from_millis(500)))

@@ -96,6 +96,7 @@ export const Lobby = () => {
               to: "/game",
               search: {
                 LobbyID: decodedPacket.LobbyID,
+                loggedUsername: "",
               },
             });
           }

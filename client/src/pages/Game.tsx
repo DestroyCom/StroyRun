@@ -12,7 +12,7 @@ export const Game = () => {
 
   const [phraseToType, setPhraseToType] = useState("Awaiting phrase");
   const [currentPositionInPhrase, setCurrentPositionInPhrase] = useState(0);
-  const [winner, setWinner] = useState(null);
+  const [winner, setWinner] = useState<null | string>(null);
 
   const carOne = useRef<HTMLDivElement>(null);
   const carTwo = useRef<HTMLDivElement>(null);

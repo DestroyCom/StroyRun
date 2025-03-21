@@ -12,6 +12,7 @@ export const Game = () => {
 
   const [phraseToType, setPhraseToType] = useState("Awaiting phrase");
   const [currentPositionInPhrase, setCurrentPositionInPhrase] = useState(0);
+  const [winner, setWinner] = useState(null);
 
   const carOne = useRef<HTMLDivElement>(null);
   const carTwo = useRef<HTMLDivElement>(null);
@@ -23,6 +24,16 @@ export const Game = () => {
     const totalCharacters = phraseToType.length;
 
     const registerKeypress = (event: KeyboardEvent) => {
+      if (currentPositionInPhrase >= totalCharacters) {
+        // console.log("Game over");
+        return;
+      }
+
+      if (winner) {
+        // console.log("Game over");
+        return;
+      }
+
       const key = event.key;
       const currentLetterWanted = phraseToType[currentPositionInPhrase];
 
@@ -165,8 +176,12 @@ export const Game = () => {
               //Display the winner
               if (!counter.current) return;
               counter.current.innerText = "You won!";
+              setWinner(winnerId);
             } else {
               console.log("You lost!");
+              if (!counter.current) return;
+              counter.current.innerText = "You lost!";
+              setWinner(decodedPacket.playerID);
             }
           }
         });

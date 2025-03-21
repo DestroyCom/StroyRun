@@ -12,7 +12,6 @@ export const Game = () => {
 
   const [phraseToType, setPhraseToType] = useState("Awaiting phrase");
   const [currentPositionInPhrase, setCurrentPositionInPhrase] = useState(0);
-  let fieldDisabled = true;
 
   const carOne = useRef<HTMLDivElement>(null);
   const carTwo = useRef<HTMLDivElement>(null);
@@ -24,8 +23,6 @@ export const Game = () => {
     const totalCharacters = phraseToType.length;
 
     const registerKeypress = (event: KeyboardEvent) => {
-      if (fieldDisabled) return;
-
       const key = event.key;
       const currentLetterWanted = phraseToType[currentPositionInPhrase];
 
@@ -97,7 +94,6 @@ export const Game = () => {
       try {
         lobbyJoinListener = await listen<string>("udp-message", (event) => {
           const packet = event.payload;
-          console.log("UDP message reçu brut:", packet);
           const decodedPacket = decodePacket(packet, "", 0);
           console.log("UDP message reçu decoded:", decodedPacket);
 
@@ -126,7 +122,7 @@ export const Game = () => {
 
                   setTimeout(() => {
                     console.log("GO!");
-                    fieldDisabled = false;
+                    setCurrentPositionInPhrase(0);
                     if (counter.current) counter.current.innerText = "";
                   }, 1000);
                 }, 1500);
@@ -172,7 +168,6 @@ export const Game = () => {
             }
           }
         });
-        console.log("Écoute UDP établie avec succès");
       } catch (error) {
         console.error("Erreur lors de l'établissement de l'écoute UDP:", error);
       }

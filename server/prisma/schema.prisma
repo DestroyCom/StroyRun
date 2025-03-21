@@ -23,13 +23,15 @@ model Player {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  currentGamePercentage Int @default(0)
+
   Lobby Lobby[]
 }
 
 model Lobby {
   id        String   @id @default(cuid())
   players   Player[] @relation("LobbyPlayers")
-//doesUsersReady Boolean
+  playersOnScreen Int  @default(0)
   readyUsers Player[]
   winnerId  String?  
   winner    Player?  @relation("LobbyWinner", fields: [winnerId], references: [username])

@@ -3,6 +3,7 @@ import { HOST, PORT } from "..";
 import { createLobby, joinLobby } from "./lobby/manage";
 import { sendPacket } from "./packets/send";
 import { PacketPayload } from "./types";
+import { createPacket } from "./packets/create";
 
 const prisma = new PrismaClient();
 
@@ -165,6 +166,152 @@ export async function interpretAction(payload: PacketPayload) {
                   isReady: false,
                 },
               ],
+            },
+            context: {
+              senderIp: HOST,
+              senderPort: PORT,
+              receiverIp: player.ipAdress,
+              receiverPort: player.port,
+            },
+          });
+        }
+      }
+
+      return;
+    case "StarterTiming":
+      //Check if two player are on screen, if it is send "StarterTiming" to the two players
+      const getLobby = await prisma.lobby.findUnique({
+        where: {
+          id: payload.LobbyID,
+        },
+        include: {
+          players: true,
+        },
+      });
+
+      const playersOnScreeen = getLobby?.playersOnScreen;
+      if (playersOnScreeen === 2) {
+        const players = await prisma.player.findMany({
+          where: { lobbies: { some: { id: payload.LobbyID } } },
+        });
+
+        for (const player of players) {
+          await sendPacket({
+            ID: "StroyRun",
+            action: "StarterTiming",
+            playerID: player.username,
+            LobbyID: payload.LobbyID,
+            data: {
+              countdown: "3",
+              phraseToType: "The brown fox jumps over the lazy dog",
+            },
+            context: {
+              senderIp: HOST,
+              senderPort: PORT,
+              receiverIp: player.ipAdress,
+              receiverPort: player.port,
+            },
+          });
+        }
+
+        let continueWhile = true;
+        do {
+          //await new Promise((resolve) => setTimeout(resolve, 1000));
+          const lobby = await prisma.lobby.findUnique({
+            where: {
+              id: payload.LobbyID,
+            },
+            include: {
+              players: true,
+            },
+          });
+
+          if (!lobby?.players) {
+            //continueWhile = false;
+            return;
+          }
+
+          for (const player of lobby.players) {
+            let playersObject = {};
+            for (const player of lobby.players) {
+              playersObject[player.username] = {
+                percentage: player.currentGamePercentage,
+                isWinner: lobby.winnerId === player.username,
+                startingTime: new Date(),
+                endingTime: new Date(),
+              };
+            }
+
+            await sendPacket({
+              ID: "StroyRun",
+              action: "GameState",
+              playerID: player.username,
+              LobbyID: payload.LobbyID,
+              data: {
+                game: {
+                  players: playersObject,
+                  context: {
+                    countdownStart: new Date(),
+                    countdownEnd: new Date(),
+                  },
+                },
+              },
+              context: {
+                senderIp: HOST,
+                senderPort: PORT,
+                receiverIp: player.ipAdress,
+                receiverPort: player.port,
+              },
+            });
+          }
+
+          if (lobby.winnerId !== null) {
+            continueWhile = false;
+          }
+        } while (continueWhile);
+      } else {
+        await prisma.lobby.update({
+          where: {
+            id: payload.LobbyID,
+          },
+          data: {
+            playersOnScreen: (playersOnScreeen ?? 0) + 1,
+          },
+        });
+      }
+      return;
+    case "PlayerState":
+      await prisma.player.update({
+        where: {
+          username: payload.playerID,
+        },
+        data: {
+          currentGamePercentage: payload.data?.personalProgress ?? 0,
+        },
+      });
+
+      //If gamepercentage is 100% send "End" to the two players
+      if (payload.data?.personalProgress === 100) {
+        const lobby = await prisma.lobby.update({
+          where: {
+            id: payload.LobbyID,
+          },
+          data: {
+            winnerId: payload.playerID,
+          },
+          include: {
+            players: true,
+          },
+        });
+
+        for (const player of lobby.players) {
+          await sendPacket({
+            ID: "StroyRun",
+            action: "End",
+            playerID: player.username,
+            LobbyID: payload.LobbyID,
+            data: {
+              winnerId: payload.playerID,
             },
             context: {
               senderIp: HOST,

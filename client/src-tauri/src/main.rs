@@ -8,7 +8,7 @@ use tauri::{AppHandle, Manager, Emitter};
 
 #[tauri::command]
 fn send_udp_message(message: String) -> Result<String, String> {
-    let game_server_addr = "192.168.31.62";
+    let game_server_addr = "192.168.34.114";
     let game_server_port = 12345;
 
     let socket = UdpSocket::bind("0.0.0.0:0")

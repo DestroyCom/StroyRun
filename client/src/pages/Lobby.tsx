@@ -94,8 +94,8 @@ export const Lobby = () => {
           ) {
             navigate({
               to: "/game",
-              params: {
-                lobbyID: decodedPacket.LobbyID,
+              search: {
+                LobbyID: decodedPacket.LobbyID,
               },
             });
           }

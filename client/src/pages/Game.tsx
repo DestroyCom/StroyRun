@@ -229,7 +229,7 @@ export const Game = () => {
 
       <div
         id="counter"
-        className="text-xl font-semibold text-center text-purple-800 drop-shadow-sm"
+        className="text-9xl font-semibold text-center text-purple-900 drop-shadow-sm"
       >
         <span ref={counter}>3</span>
       </div>

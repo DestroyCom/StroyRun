@@ -179,6 +179,8 @@ export async function interpretAction(payload: PacketPayload) {
 
       return;
     case "StarterTiming":
+      console.log("StarterTiming");
+
       //Check if two player are on screen, if it is send "StarterTiming" to the two players
       const getLobby = await prisma.lobby.findUnique({
         where: {
@@ -268,6 +270,9 @@ export async function interpretAction(payload: PacketPayload) {
           if (lobby.winnerId !== null) {
             continueWhile = false;
           }
+
+          //Timeout
+          await new Promise((resolve) => setTimeout(resolve, 500));
         } while (continueWhile);
       } else {
         await prisma.lobby.update({

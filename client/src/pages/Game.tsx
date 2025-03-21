@@ -6,15 +6,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { useSearch } from "@tanstack/react-router";
 
 export const Game = () => {
-  const { LobbyID } = useSearch({
+  const { LobbyID, loggedUsername } = useSearch({
     from: "/game",
   });
 
   const [phraseToType, setPhraseToType] = useState("Awaiting phrase");
   const [currentPositionInPhrase, setCurrentPositionInPhrase] = useState(0);
-  const [isFieldDisabled, setIsFieldDisabled] = useState(true);
-
-  const loggedUsername = localStorage.getItem("stroyrun:username");
+  let fieldDisabled = true;
 
   const carOne = useRef<HTMLDivElement>(null);
   const carTwo = useRef<HTMLDivElement>(null);
@@ -26,7 +24,7 @@ export const Game = () => {
     const totalCharacters = phraseToType.length;
 
     const registerKeypress = (event: KeyboardEvent) => {
-      if (isFieldDisabled) return;
+      if (fieldDisabled) return;
 
       const key = event.key;
       const currentLetterWanted = phraseToType[currentPositionInPhrase];
@@ -111,23 +109,29 @@ export const Game = () => {
               setPhraseToType(decodedPacket.data?.phraseToType || "");
             }
 
-            setTimeout(() => {
-              if (!counter.current) return;
+            // Réinitialiser le compteur à 3
+            if (counter.current) {
+              counter.current.innerText = "3";
+            }
 
-              const previousCount = counter.current?.innerText;
-              if (previousCount === "3") {
-                counter.current.innerText = "2";
-              } else if (previousCount === "2") {
-                counter.current.innerText = "1";
-              } else if (previousCount === "1") {
-                counter.current.innerText = "GO!";
-              } else if (previousCount === "GO!") {
-                setIsFieldDisabled(false);
-                counter.current.innerText = "";
-              } else {
-                counter.current.innerText = "3";
-              }
-            }, 1000);
+            // Créer une séquence de timeouts pour le compte à rebours
+            setTimeout(() => {
+              if (counter.current) counter.current.innerText = "2";
+
+              setTimeout(() => {
+                if (counter.current) counter.current.innerText = "1";
+
+                setTimeout(() => {
+                  if (counter.current) counter.current.innerText = "GO!";
+
+                  setTimeout(() => {
+                    console.log("GO!");
+                    fieldDisabled = false;
+                    if (counter.current) counter.current.innerText = "";
+                  }, 1000);
+                }, 1500);
+              }, 1500);
+            }, 1500);
           }
 
           if (decodedPacket.action === "GameState") {
@@ -136,11 +140,14 @@ export const Game = () => {
               return;
             }
 
-            const playerOneProgress = data[loggedUsername].percentage;
-            const otherPlayerId = Object.keys(data).find(
-              (key) => key !== loggedUsername
-            );
-            const playerTwoProgress = data[otherPlayerId].percentage;
+            console.log("GameState data:", data);
+
+            const playerOneProgress = data.players[loggedUsername].percentage;
+            const otherPlayerId = Object.keys(data.players).find(
+              (username) => username !== loggedUsername
+            ) as string;
+
+            const playerTwoProgress = data.players[otherPlayerId].percentage;
 
             if (carOne.current) {
               carOne.current.style.left = `${playerOneProgress}%`;
@@ -179,26 +186,25 @@ export const Game = () => {
   }, []);
 
   useEffect(() => {
-    async () => {
-      if (!loggedUsername) return;
+    console.log("loggeUsername", loggedUsername);
+    if (!loggedUsername) return;
 
-      //Send StarterTiming
-      await invoke<string>("send_udp_message", {
-        message: createPacket({
-          ID: "StroyRun",
-          action: "StarterTiming",
-          playerID: loggedUsername,
-          LobbyID: LobbyID,
-          data: {},
-          context: {
-            senderIp: "",
-            senderPort: 0,
-            receiverIp: "",
-            receiverPort: 0,
-          },
-        }),
-      });
-    };
+    console.log("Envoi du message pour démarrer la game");
+    invoke<string>("send_udp_message", {
+      message: createPacket({
+        ID: "StroyRun",
+        action: "StarterTiming",
+        playerID: loggedUsername,
+        LobbyID: LobbyID,
+        data: {},
+        context: {
+          senderIp: "",
+          senderPort: 0,
+          receiverIp: "",
+          receiverPort: 0,
+        },
+      }),
+    });
   }, []);
 
   return (
@@ -230,7 +236,7 @@ export const Game = () => {
         id="counter"
         className="text-xl font-semibold text-center text-purple-800 drop-shadow-sm"
       >
-        <span ref={counter}></span>
+        <span ref={counter}>3</span>
       </div>
 
       <div

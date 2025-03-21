@@ -162,7 +162,9 @@ export const Game = () => {
             const winnerId = data.winnerId;
             if (winnerId === decodedPacket.playerID) {
               console.log("You won!");
-              alert(`Winner is ${winnerId}`);
+              //Display the winner
+              if (!counter.current) return;
+              counter.current.innerText = "You won!";
             } else {
               console.log("You lost!");
             }

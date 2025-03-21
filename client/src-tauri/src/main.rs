@@ -15,9 +15,9 @@ fn send_udp_message(message: String) -> Result<String, String> {
         .map_err(|e| format!("Impossible de binder le socket UDP local: {}", e))?;
     let server_addr = format!("{}:{}", game_server_addr, game_server_port);
     
-    socket
-        .set_read_timeout(Some(Duration::from_secs(2)))
-        .map_err(|e| format!("Impossible de configurer le timeout: {}", e))?;
+    // socket
+    //     .set_read_timeout(Some(Duration::from_secs(2)))
+    //     .map_err(|e| format!("Impossible de configurer le timeout: {}", e))?;
     
     socket
         .send_to(message.as_bytes(), server_addr)
@@ -38,9 +38,9 @@ fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
         let listener_socket = UdpSocket::bind("0.0.0.0:9999")
             .expect("Impossible de binder le socket d'écoute sur le port 9999");
         
-        listener_socket
-            .set_read_timeout(Some(Duration::from_millis(500)))
-            .ok();
+        // listener_socket
+        //     .set_read_timeout(Some(Duration::from_millis(500)))
+        //     .ok();
 
         let mut buf = [0u8; 1024];
         loop {

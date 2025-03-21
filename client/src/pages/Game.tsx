@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { createPacket, decodePacket } from "src/utils/packets";
+import { createPacket, decodePacket } from "../utils/packets";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useSearch } from "@tanstack/react-router";
 
 export const Game = () => {
   const { LobbyID } = useSearch({
-    from: "/lobby",
+    from: "/game",
   });
 
   const [phraseToType, setPhraseToType] = useState("Awaiting phrase");
@@ -175,6 +175,29 @@ export const Game = () => {
         console.log("Nettoyage de l'écoute UDP");
         lobbyJoinListener();
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    async () => {
+      if (!loggedUsername) return;
+
+      //Send StarterTiming
+      await invoke<string>("send_udp_message", {
+        message: createPacket({
+          ID: "StroyRun",
+          action: "StarterTiming",
+          playerID: loggedUsername,
+          LobbyID: LobbyID,
+          data: {},
+          context: {
+            senderIp: "",
+            senderPort: 0,
+            receiverIp: "",
+            receiverPort: 0,
+          },
+        }),
+      });
     };
   }, []);
 

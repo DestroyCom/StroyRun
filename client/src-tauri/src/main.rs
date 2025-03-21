@@ -16,7 +16,7 @@ fn send_udp_message(message: String) -> Result<String, String> {
     let server_addr = format!("{}:{}", game_server_addr, game_server_port);
     
      socket
-        .set_read_timeout(Some(Duration::from_millis(100)))
+        .set_read_timeout(Some(Duration::from_millis(200)))
         .map_err(|e| format!("Impossible de configurer le timeout: {}", e))?;
     
     socket
@@ -39,7 +39,7 @@ fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
             .expect("Impossible de binder le socket d'écoute sur le port 9999");
         
          listener_socket
-             .set_read_timeout(Some(Duration::from_millis(100)))
+             .set_read_timeout(Some(Duration::from_millis(200)))
              .ok();
 
         let mut buf = [0u8; 1024];
@@ -61,8 +61,8 @@ fn start_udp_listener(app_handle: AppHandle) -> thread::JoinHandle<()> {
                 }
                 Err(e) => eprintln!("Erreur de réception UDP: {}", e),
             }
-            // Petite pause pour éviter un spin loop à 100% CPU
-            thread::sleep(Duration::from_millis(100));
+            // Petite pause pour éviter un spin loop à 200% CPU
+            thread::sleep(Duration::from_millis(200));
         }
     })
 }

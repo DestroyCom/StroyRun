@@ -272,7 +272,7 @@ export async function interpretAction(payload: PacketPayload) {
           }
 
           //Timeout
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 250));
         } while (continueWhile);
       } else {
         await prisma.lobby.update({
@@ -297,6 +297,19 @@ export async function interpretAction(payload: PacketPayload) {
 
       //If gamepercentage is 100% send "End" to the two players
       if (payload.data?.personalProgress === 100) {
+        const oldLobbyData = await prisma.lobby.findUnique({
+          where: {
+            id: payload.LobbyID,
+          },
+          include: {
+            players: true,
+          },
+        });
+
+        if (oldLobbyData?.winnerId) {
+          return;
+        }
+
         const lobby = await prisma.lobby.update({
           where: {
             id: payload.LobbyID,
